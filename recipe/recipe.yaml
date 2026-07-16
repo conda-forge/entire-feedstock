@@ -1,7 +1,7 @@
 schema_version: 1
 
 context:
-  version: "0.8.42"
+  version: "0.8.43-nightly.202607160655.1ec80f696"
 
 package:
   name: entire
@@ -9,7 +9,7 @@ package:
 
 source:
   url: https://github.com/entireio/cli/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 8031a404a75d424b91ef894146ef3878fcf8cd9e98c2598ec7473dd58d514b9c
+  sha256: 451bc2665f8da5db84a4fa9ba4a36f0b1a90825887564fc719b101faaa5ce84d
   target_directory: src
 
 build:
