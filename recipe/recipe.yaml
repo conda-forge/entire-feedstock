@@ -10,26 +10,31 @@ package:
 source:
   url: https://github.com/entireio/cli/archive/refs/tags/v${{ version }}.tar.gz
   sha256: 3897cb720b07b9ba3e57415d603e7a54de88efcb6998f5ba4bb59b583549fd88
-  target_directory: src
 
 build:
-  number: 0
+  number: 1
   script:
-    - cd src
-    - go-licenses save ./cmd/entire --save_path ../library_licenses --ignore github.com/segmentio/asm
-    - cp ../gopath/pkg/mod/github.com/segmentio/asm@v1.2.1/LICENSE ../library_licenses/segmentio-asm-LICENSE
-    - if: unix
-      then:
-        - go build -v -o $PREFIX/bin/entire -ldflags="-s -w" ./cmd/entire
-        - go build -v -o $PREFIX/bin/git-remote-entire -ldflags="-s -w" ./cmd/git-remote-entire
-      else:
-        - go build -v -o %LIBRARY_BIN%\entire.exe -ldflags="-s -w" ./cmd/entire
-        - go build -v -o %LIBRARY_BIN%\git-remote-entire.exe -ldflags="-s -w" ./cmd/git-remote-entire
+    interpreter: nu
+    content:
+      - let prefix = $env.LIBRARY_PREFIX? | default $env.PREFIX
+      # build main app and generate license data
+      - let short_commit_hash = (http get https://api.github.com/repos/entireio/cli/commits/v${{ version }}).sha | str substring 0..6
+      - ^go build -o=($prefix)/bin/ -v -ldflags=$'-s -w -X github.com/entireio/cli/cmd/entire/cli/versioninfo.Commit=($short_commit_hash) -X github.com/entireio/cli/cmd/entire/cli/versioninfo.Version=${{ version }}' ./cmd/entire
+      - ^go build -o=($prefix)/bin/ -v -ldflags=$'-s -w -X github.com/entireio/cli/cmd/entire/cli/versioninfo.Commit=($short_commit_hash) -X github.com/entireio/cli/cmd/entire/cli/versioninfo.Version=${{ version }}' ./cmd/git-remote-entire
+      - ^go-licenses save ./cmd/entire --save_path=library_licenses --ignore=github.com/segmentio/asm
+      - cp gopath/pkg/mod/github.com/segmentio/asm@v1.2.1/LICENSE library_licenses/segmentio-asm-LICENSE
+      # generate shell completions
+      - if: build_platform == host_platform
+        then:
+          - ^entire completion bash | save --force ($prefix)/share/bash-completion/completions/entire
+          - ^entire completion fish | save --force ($prefix)/share/fish/vendor_completions.d/entire.fish
+          - ^entire completion zsh  | save --force ($prefix)/share/zsh/site-functions/_entire
 
 requirements:
   build:
     - ${{ compiler("go-nocgo") }}
     - go-licenses
+    - nushell
 
 tests:
   - script:
@@ -38,20 +43,31 @@ tests:
       bin:
         - entire
         - git-remote-entire
+      files:
+        - if: unix and build_platform == host_platform
+          then:
+            - share/bash-completion/completions/entire
+            - share/fish/vendor_completions.d/entire.fish
+            - share/zsh/site-functions/_entire
+        - if: win and build_platform == host_platform
+          then:
+            - Library/share/bash-completion/completions/entire
+            - Library/share/fish/vendor_completions.d/entire.fish
+            - Library/share/zsh/site-functions/_entire
       strict: true
 
 about:
-  homepage: https://github.com/entireio/cli
-  summary: CLI for Entire - Capture AI agent sessions alongside your git commits
+  summary: Entire CLI – Capture AI agent sessions alongside your Git commits
   description: |
     Entire hooks into your Git workflow to capture AI agent sessions as you work.
     Sessions are indexed alongside commits, creating a searchable record of how
     code was written in your repo.
   license: MIT
   license_file:
-    - src/LICENSE
+    - LICENSE
     - library_licenses/
-  documentation: https://github.com/entireio/cli
+  homepage: https://docs.entire.com/platforms/cli-and-entire-com
+  documentation: https://docs.entire.com/cli-reference
   repository: https://github.com/entireio/cli
 
 extra:
