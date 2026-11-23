@@ -3,15 +3,15 @@ About entire-feedstock
 
 Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/entire-feedstock/blob/main/LICENSE.txt)
 
-Home: https://github.com/entireio/cli
+Home: https://docs.entire.com/platforms/cli-and-entire-com
 
 Package license: MIT
 
-Summary: CLI for Entire - Capture AI agent sessions alongside your git commits
+Summary: Entire CLI – Capture AI agent sessions alongside your Git commits
 
 Development: https://github.com/entireio/cli
 
-Documentation: https://github.com/entireio/cli
+Documentation: https://docs.entire.com/cli-reference
 
 Entire hooks into your Git workflow to capture AI agent sessions as you work.
 Sessions are indexed alongside commits, creating a searchable record of how
